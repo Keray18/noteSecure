@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+enum ShareType {
+  ONE_TIME
+  TIME_BASED
+}
+
+enum AccessType {
+  PUBLIC
+  PASSWORD
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+
+  notes     Note[]
+
+  createdAt DateTime @default(now())
+}
+
+model Note {
+  id        String   @id @default(cuid())
+
+  title     String
+  content   String
+
+  ownerId   String
+  owner     User @relation(fields: [ownerId], references: [id])
+
+  shares    ShareLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShareLink {
+
+  id            String @id @default(cuid())
+
+  noteId        String
+  note          Note @relation(fields: [noteId], references: [id])
+
+  token         String @unique
+
+  shareType     ShareType
+  accessType    AccessType
+
+  passwordHash  String?
+
+  expiresAt     DateTime?
+
+  used          Boolean @default(false)
+
+  revoked       Boolean @default(false)
+
+  viewCount     Int @default(0)
+
+  createdAt     DateTime @default(now())
+
+  @@index([token])
+}
