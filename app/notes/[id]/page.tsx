@@ -1,16 +1,39 @@
 "use client";
-
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+type ShareLink = {
+  id: string;
+  token: string;
+  shareType: "ONE_TIME" | "TIME_BASED";
+  accessType: "PUBLIC" | "PASSWORD";
+  viewCount: number;
+  revoked: boolean;
+  expiresAt: string | null;
+};
 
 export default function SharePage() {
   const { id } = useParams<{ id: string }>();
 
+  const [links, setLinks] = useState<ShareLink[]>([]);
   const [shareType, setShareType] = useState("ONE_TIME");
   const [accessType, setAccessType] = useState("PUBLIC");
   const [password, setPassword] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [generatedLink, setGeneratedLink] = useState("");
+
+  async function fetchLinks() {
+    const res = await fetch(`/api/share/create/${id}`);
+    const data = await res.json();
+
+    if (res.ok) {
+      setLinks(data.links);
+    }
+  }
+
+  useEffect(() => {
+    fetchLinks();
+  }, []);
 
   async function generateLink() {
     const body = {
@@ -39,12 +62,26 @@ export default function SharePage() {
     }
 
     setGeneratedLink(data.data.url);
+
+    fetchLinks();
+
     alert("Share link created");
+  }
+
+  async function revokeLink(linkId: string) {
+    const res = await fetch(`/api/share/revoke/${linkId}`, {
+      method: "PATCH",
+    });
+
+    const data = await res.json();
+
+    alert(data.message);
+
+    fetchLinks();
   }
 
   return (
     <div className="max-w-2xl mx-auto p-8">
-
       <h1 className="text-3xl font-bold mb-8">
         Share Note
       </h1>
@@ -128,8 +165,82 @@ export default function SharePage() {
           </div>
         )}
 
-      </div>
+        {links.length > 0 && (
+          <div className="mt-10">
 
+            <h2 className="text-2xl font-bold mb-4">
+              Existing Share Links
+            </h2>
+
+            <table className="w-full border">
+
+              <thead>
+
+                <tr className="bg-gray-100">
+
+                  <th className="border p-2">Type</th>
+
+                  <th className="border p-2">Access</th>
+
+                  <th className="border p-2">Views</th>
+
+                  <th className="border p-2">Status</th>
+
+                  <th className="border p-2">Action</th>
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                {links.map((link) => (
+
+                  <tr key={link.id}>
+
+                    <td className="border p-2">
+                      {link.shareType}
+                    </td>
+
+                    <td className="border p-2">
+                      {link.accessType}
+                    </td>
+
+                    <td className="border p-2">
+                      {link.viewCount}
+                    </td>
+
+                    <td className="border p-2">
+                      {link.revoked ? "Revoked" : "Active"}
+                    </td>
+
+                    <td className="border p-2">
+
+                      {!link.revoked ? (
+                        <button
+                          onClick={() => revokeLink(link.id)}
+                          className="bg-red-600 text-white px-3 py-1 rounded"
+                        >
+                          Revoke
+                        </button>
+                      ) : (
+                        "—"
+                      )}
+
+                    </td>
+
+                  </tr>
+
+                ))}
+
+              </tbody>
+
+            </table>
+
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

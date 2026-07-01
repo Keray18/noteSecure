@@ -100,3 +100,66 @@ export async function POST(request: Request, { params }: { params: Promise<{ not
         )
     }
 }
+
+
+export async function GET(request: Request, { params }: { params: Promise<{ noteId: string }> }) {
+  try {
+    const userId = await getCurrentUserId();
+
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Unauthorized",
+        },
+        { status: 401 }
+      );
+    }
+
+    const { noteId } = await params;
+
+    const note = await prisma.note.findFirst({
+      where: {
+        id: noteId,
+        ownerId: userId,
+      },
+    });
+
+    if (!note) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Note not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    const links = await prisma.shareLink.findMany({
+      where: {
+        noteId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      links,
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal Server Error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
+}
