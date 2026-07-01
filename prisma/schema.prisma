@@ -10,6 +10,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url = env("DATABASE_URL")
   
 }
 
@@ -61,7 +62,7 @@ model ShareLink {
   shareType     ShareType
   accessType    AccessType
 
-  passwordHash  String?
+  hashedPassword  String?
 
   expiresAt     DateTime?
 

@@ -22,7 +22,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ not
 
         const note = await prisma.note.findFirst({
             where: {
-                noteId,
+                id: noteId,
                 ownerId: userId
             }
         })

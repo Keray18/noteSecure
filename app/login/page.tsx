@@ -1,7 +1,7 @@
 "use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const router = useRouter();
@@ -93,6 +93,19 @@ export default function LoginPage() {
         >
           {loading ? "Logging in..." : "Login"}
         </button>
+
+        <div className="mt-5 text-center">
+        <span className="text-gray-600">
+          Don't have an account?
+        </span>
+
+        <Link
+          href="/register"
+          className="ml-2 text-blue-600 hover:underline font-medium"
+        >
+          Register
+        </Link>
+      </div>
 
       </form>
 
