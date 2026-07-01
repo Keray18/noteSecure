@@ -53,10 +53,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 5: Generate JWT
     const token = generateToken(user.id);
 
-    // Step 6: Create response
     const response = NextResponse.json(
       {
         success: true,
@@ -72,14 +70,14 @@ export async function POST(request: Request) {
       }
     );
 
-    // Step 7: Store JWT in cookie
+
     response.cookies.set({
       name: "token",
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 1,
       path: "/",
     });
 
